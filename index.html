@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dipsea Race Split Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
+  .subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; }
+  .inputs { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  select, input[type=number] {
+    background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 8px;
+    padding: 10px 14px; font-size: 1rem; outline: none; transition: border-color 0.15s;
+  }
+  select:focus, input:focus { border-color: #3b82f6; }
+  input[type=number] { width: 80px; }
+  select { min-width: 100px; cursor: pointer; }
+  .group-badge { display: inline-flex; align-items: center; gap: 6px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 14px; font-size: 0.9rem; color: #94a3b8; min-height: 42px; }
+  .group-badge strong { color: #f1f5f9; font-size: 1.1rem; }
+  .group-badge .hs { color: #3b82f6; font-weight: 600; }
+
+  /* Terrain bias slider */
+  .bias-control { margin-bottom: 20px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px 18px; }
+  .bias-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .bias-header label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .bias-value { font-size: 0.8rem; color: #94a3b8; }
+  .bias-value span { color: #f1f5f9; font-weight: 600; }
+  .bias-slider-row { display: flex; align-items: center; gap: 10px; }
+  .bias-label-left, .bias-label-right { font-size: 0.7rem; color: #64748b; white-space: nowrap; min-width: 60px; }
+  .bias-label-right { text-align: right; }
+  input[type=range] {
+    flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px;
+    background: linear-gradient(to right, #059669, #334155 40%, #334155 60%, #d97706);
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+    background: #f1f5f9; border: 2px solid #3b82f6; cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #f1f5f9; border: 2px solid #3b82f6; cursor: pointer;
+  }
+  .bias-ticks { display: flex; justify-content: space-between; padding: 0 2px; margin-top: 2px; }
+  .bias-ticks span { font-size: 0.6rem; color: #475569; width: 20px; text-align: center; }
+  .bias-desc { font-size: 0.75rem; color: #64748b; margin-top: 6px; text-align: center; min-height: 1.2em; }
+  .bias-desc em { color: #94a3b8; font-style: normal; }
+
+  .results { display: flex; flex-direction: column; gap: 16px; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden; }
+  .card-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+  .card-header .place { font-weight: 700; font-size: 1rem; }
+  .card-header .actual { color: #94a3b8; font-size: 0.85rem; }
+  .card-header .actual span { color: #f1f5f9; font-weight: 600; font-size: 1rem; }
+  .splits-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .split-cell { padding: 12px 8px; text-align: center; border-right: 1px solid #1e293b; }
+  .split-cell:last-child { border-right: none; }
+  .split-cell .label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .split-cell .time { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .split-cell .seg { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+  .split-cell .delta { font-size: 0.7rem; margin-top: 1px; }
+  .delta.faster { color: #34d399; }
+  .delta.slower { color: #fb923c; }
+  .delta.neutral { color: #475569; }
+  .elapsed-row { background: #0f172a; }
+  .qualify .card-header { background: #14532d; border-bottom-color: #166534; }
+  .qualify { border-color: #166534; }
+  .winner .card-header { background: #713f12; border-bottom-color: #854d0e; }
+  .winner { border-color: #854d0e; }
+  .blackshirt .card-header { background: #1e1b4b; border-bottom-color: #312e81; }
+  .blackshirt { border-color: #312e81; }
+  #no-results { display: none; color: #64748b; text-align: center; padding: 40px; font-size: 0.9rem; }
+  .start-info { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .start-info .chip { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; color: #94a3b8; }
+  .start-info .chip span { color: #f1f5f9; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Dipsea Split Calculator</h1>
+  <p class="subtitle">Target split times based on 2025 results</p>
+  <div class="inputs">
+    <div class="field">
+      <label>Sex</label>
+      <select id="sex"><option value="M">Male</option><option value="F">Female</option></select>
+    </div>
+    <div class="field">
+      <label>Age</label>
+      <input type="number" id="age" min="6" max="100" value="53">
+    </div>
+    <div class="field">
+      <label>Section</label>
+      <select id="section"><option value="INV">Invitational</option><option value="DR">Dipsea Runner</option></select>
+    </div>
+    <div class="field" style="justify-content:flex-end;">
+      <div class="group-badge" id="group-info"></div>
+    </div>
+  </div>
+  <div class="bias-control">
+    <div class="bias-header">
+      <label>Terrain Strength</label>
+      <div class="bias-value" id="bias-value">Neutral</div>
+    </div>
+    <div class="bias-slider-row">
+      <div class="bias-label-left">Uphill</div>
+      <input type="range" id="bias" min="-2" max="2" step="0.5" value="0">
+      <div class="bias-label-right">Downhill</div>
+    </div>
+    <div class="bias-ticks"><span>-2</span><span>-1</span><span>0</span><span>1</span><span>2</span></div>
+    <div class="bias-desc" id="bias-desc"></div>
+  </div>
+  <div class="start-info" id="start-info"></div>
+  <div class="results" id="results"></div>
+  <div id="no-results">Select age and section to see split targets.</div>
+</div>
+<script>
+const D = {
+  hs_m: {6:25,7:21,8:16,9:13,10:11,11:9,12:7,13:6,14:5,15:4,16:3,17:2,18:1,19:1,20:0,21:0,22:0,23:0,24:0,25:0,26:1,27:1,28:1,29:1,30:1,31:1,32:1,33:2,34:2,35:2,36:2,37:2,38:2,39:2,40:2,41:2,42:3,43:3,44:3,45:4,46:4,47:4,48:5,49:5,50:6,51:6,52:6,53:6,54:7,55:7,56:8,57:9,58:10,59:10,60:11,61:12,62:13,63:14,64:14,65:15,66:16,67:17,68:18,69:19,70:20,71:22,72:23,73:24,74:25,75:25,76:25,77:25,78:25,79:25,80:25,81:25,82:25,83:25,84:25,85:25,86:25,87:25,88:25,89:25,90:25,91:25,92:25,93:25,94:25,95:25,96:25,97:25,98:25,99:25,100:25},
+  hs_f: {6:25,7:25,8:23,9:20,10:16,11:14,12:13,13:12,14:12,15:12,16:11,17:11,18:11,19:11,20:11,21:11,22:11,23:11,24:11,25:10,26:9,27:9,28:9,29:9,30:9,31:9,32:9,33:9,34:9,35:9,36:9,37:9,38:9,39:9,40:10,41:10,42:10,43:10,44:11,45:12,46:12,47:12,48:12,49:13,50:13,51:13,52:14,53:15,54:15,55:16,56:17,57:17,58:18,59:19,60:20,61:20,62:21,63:22,64:23,65:24,66:25,67:25,68:25,69:25,70:25,71:25,72:25,73:25,74:25,75:25,76:25,77:25,78:25,79:25,80:25,81:25,82:25,83:25,84:25,85:25,86:25,87:25,88:25,89:25,90:25,91:25,92:25,93:25,94:25,95:25,96:25,97:25,98:25,99:25,100:25},
+  grp_m: {6:"AAA",7:"C",8:"H",9:"L",10:"N",11:"Q",12:"T",13:"U",14:"V",15:"W",16:"X",17:"Y",18:"Z",19:"Z",20:"SCR",21:"SCR",22:"SCR",23:"SCR",24:"SCR",25:"SCR",26:"Z",27:"Z",28:"Z",29:"Z",30:"Z",31:"Z",32:"Z",33:"Y",34:"Y",35:"Y",36:"Y",37:"Y",38:"Y",39:"Y",40:"Y",41:"Y",42:"X",43:"X",44:"X",45:"W",46:"W",47:"W",48:"V",49:"V",50:"U",51:"U",52:"U",53:"U",54:"T",55:"T",56:"R",57:"Q",58:"P",59:"P",60:"N",61:"M",62:"L",63:"K",64:"K",65:"J",66:"H",67:"G",68:"F",69:"E",70:"D",71:"B",72:"A",73:"AA",74:"AAA",75:"AAA",76:"AAA",77:"AAA",78:"AAA",79:"AAA",80:"AAA",81:"AAA",82:"AAA",83:"AAA",84:"AAA",85:"AAA",86:"AAA",87:"AAA",88:"AAA",89:"AAA",90:"AAA",91:"AAA",92:"AAA",93:"AAA",94:"AAA",95:"AAA",96:"AAA",97:"AAA",98:"AAA",99:"AAA",100:"AAA"},
+  grp_f: {6:"AAA",7:"AAA",8:"A",9:"D",10:"H",11:"K",12:"L",13:"M",14:"M",15:"M",16:"N",17:"N",18:"N",19:"N",20:"N",21:"N",22:"N",23:"N",24:"N",25:"P",26:"Q",27:"Q",28:"Q",29:"Q",30:"Q",31:"Q",32:"Q",33:"Q",34:"Q",35:"Q",36:"Q",37:"Q",38:"Q",39:"Q",40:"P",41:"P",42:"P",43:"P",44:"N",45:"M",46:"M",47:"M",48:"M",49:"L",50:"L",51:"L",52:"K",53:"J",54:"J",55:"H",56:"G",57:"G",58:"F",59:"E",60:"D",61:"D",62:"C",63:"B",64:"A",65:"AA",66:"AAA",67:"AAA",68:"AAA",69:"AAA",70:"AAA",71:"AAA",72:"AAA",73:"AAA",74:"AAA",75:"AAA",76:"AAA",77:"AAA",78:"AAA",79:"AAA",80:"AAA",81:"AAA",82:"AAA",83:"AAA",84:"AAA",85:"AAA",86:"AAA",87:"AAA",88:"AAA",89:"AAA",90:"AAA",91:"AAA",92:"AAA",93:"AAA",94:"AAA",95:"AAA",96:"AAA",97:"AAA",98:"AAA",99:"AAA",100:"AAA"},
+  clocks: { "1":2788, "35":3198, "100":3531, "450":4270, "750":5865, "dr_winner":4636 },
+  props: {
+    "1":   {p1:0.2948,p2:0.3698,p3:0.3052,p4:0.0301},
+    "35":  {p1:0.2942,p2:0.3736,p3:0.3035,p4:0.0287},
+    "100": {p1:0.2888,p2:0.3770,p3:0.3058,p4:0.0284},
+    "450": {p1:0.2822,p2:0.3851,p3:0.3053,p4:0.0274},
+    "750": {p1:0.2894,p2:0.3816,p3:0.3023,p4:0.0268},
+    "dr_winner": {p1:0.3008,p2:0.3644,p3:0.3067,p4:0.0281}
+  },
+  dr_offset: 1621,
+  // 1 SD of proportion variation within narrow finish-time bands (from 2025 data)
+  // p2 (Muir→Cardiac, uphill): 1.44% per SD
+  // p3 (Cardiac→Stile, downhill): 1.37% per SD
+  // Correlation between p2 and p3 ~ -0.7, so they trade off
+  // Bias slider: each unit = 1 SD. Negative = uphill strong, positive = downhill strong.
+  // Uphill strong: p2 decreases (faster uphill), p3 increases (slower downhill)
+  // Downhill strong: p2 increases (slower uphill), p3 decreases (faster downhill)
+  bias_p2_sd: 0.0144,  // 1 SD for p2
+  bias_p3_sd: 0.0137,  // 1 SD for p3
+};
+
+function fmt(secs) {
+  if (secs == null || secs <= 0) return "---";
+  const s = Math.round(secs);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return h + ":" + String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
+  return m + ":" + String(sec).padStart(2,"0");
+}
+
+function fmtDelta(secs) {
+  const abs = Math.abs(Math.round(secs));
+  const m = Math.floor(abs / 60);
+  const s = abs % 60;
+  const sign = secs < -2 ? "-" : secs > 2 ? "+" : "";
+  return sign + m + ":" + String(s).padStart(2, "0");
+}
+
+function startTime(hs, section) {
+  const base = section === "INV" ? 25 : 52;
+  const offset = base - hs;
+  return "8:" + String(offset).padStart(2, "0");
+}
+
+function updateBiasLabel() {
+  const bias = parseFloat(document.getElementById("bias").value);
+  const valueEl = document.getElementById("bias-value");
+  const descEl = document.getElementById("bias-desc");
+
+  if (bias === 0) {
+    valueEl.innerHTML = "Neutral";
+    descEl.innerHTML = "";
+  } else if (bias < 0) {
+    const strength = bias === -2 ? "Strong" : bias <= -1 ? "Moderate" : "Slight";
+    valueEl.innerHTML = `<span>${strength} uphill</span>`;
+    descEl.innerHTML = `<em>Faster</em> Muir\u2192Cardiac, <em>slower</em> Cardiac\u2192Stile`;
+  } else {
+    const strength = bias === 2 ? "Strong" : bias >= 1 ? "Moderate" : "Slight";
+    valueEl.innerHTML = `<span>${strength} downhill</span>`;
+    descEl.innerHTML = `<em>Slower</em> Muir\u2192Cardiac, <em>faster</em> Cardiac\u2192Stile`;
+  }
+}
+
+function compute() {
+  const sex = document.getElementById("sex").value;
+  const age = parseInt(document.getElementById("age").value);
+  const section = document.getElementById("section").value;
+  const bias = parseFloat(document.getElementById("bias").value);
+  const resultsEl = document.getElementById("results");
+  const noResults = document.getElementById("no-results");
+  const groupInfo = document.getElementById("group-info");
+  const startInfo = document.getElementById("start-info");
+
+  updateBiasLabel();
+
+  if (isNaN(age) || age < 6 || age > 100) {
+    resultsEl.innerHTML = "";
+    noResults.style.display = "block";
+    groupInfo.innerHTML = "";
+    startInfo.innerHTML = "";
+    return;
+  }
+
+  const hsMap = sex === "M" ? D.hs_m : D.hs_f;
+  const grpMap = sex === "M" ? D.grp_m : D.grp_f;
+  const hs = hsMap[age];
+  const grp = grpMap[age];
+
+  if (hs == null) {
+    resultsEl.innerHTML = "";
+    noResults.style.display = "block";
+    groupInfo.innerHTML = "";
+    startInfo.innerHTML = "";
+    return;
+  }
+
+  groupInfo.innerHTML = `Group <strong>${grp}</strong> &middot; <span class="hs">+${hs} min</span>`;
+  const st = startTime(hs, section);
+  startInfo.innerHTML = `<div class="chip">Start time: <span>${st}</span></div>` +
+    `<div class="chip">Section: <span>${section === "INV" ? "Invitational" : "Dipsea Runner"}</span></div>`;
+
+  noResults.style.display = "none";
+
+  let targets;
+  if (section === "INV") {
+    targets = [
+      { key: "1", label: "1st Place (Winner)", cls: "winner" },
+      { key: "35", label: "35th Place (Black Shirt)", cls: "blackshirt" },
+      { key: "100", label: "100th Place", cls: "" },
+      { key: "450", label: "450th Place (INV Qualifying)", cls: "qualify" },
+    ];
+  } else {
+    targets = [
+      { key: "dr_winner", label: "DR Section Winner (Place ~540)", cls: "winner" },
+      { key: "750", label: "750th Place (Qualifying)", cls: "qualify" },
+    ];
+  }
+
+  let html = "";
+  for (const t of targets) {
+    const clock = D.clocks[t.key];
+    const baseProps = D.props[t.key];
+    let actual;
+    if (section === "INV") {
+      actual = clock + hs * 60;
+    } else {
+      actual = clock + hs * 60 - D.dr_offset;
+    }
+    if (actual <= 0) {
+      html += `<div class="card ${t.cls}"><div class="card-header"><span class="place">${t.label}</span><span class="actual">Not achievable from this group</span></div></div>`;
+      continue;
+    }
+
+    // Apply terrain bias
+    // bias < 0 = uphill strong: p2 decreases, p3 increases
+    // bias > 0 = downhill strong: p2 increases, p3 decreases
+    // p1 stays neutral, p4 stays neutral
+    // The shift is zero-sum between p2 and p3 to keep total = 1.0
+    const p2_shift = bias * D.bias_p2_sd;   // positive bias → p2 increases (slower uphill)
+    const p3_shift = -bias * D.bias_p3_sd;  // positive bias → p3 decreases (faster downhill)
+
+    const p1 = baseProps.p1;
+    const p2 = baseProps.p2 + p2_shift;
+    const p3 = baseProps.p3 + p3_shift;
+    const p4 = 1.0 - p1 - p2 - p3;  // absorb rounding
+
+    // Neutral splits (for showing deltas)
+    const muir0 = actual * baseProps.p1;
+    const cardiac0 = actual * (baseProps.p1 + baseProps.p2);
+    const stile0 = actual * (baseProps.p1 + baseProps.p2 + baseProps.p3);
+
+    // Biased splits
+    const muir = actual * p1;
+    const cardiac = actual * (p1 + p2);
+    const stile = actual * (p1 + p2 + p3);
+
+    const seg1 = muir;
+    const seg2 = cardiac - muir;
+    const seg3 = stile - cardiac;
+    const seg4 = actual - stile;
+
+    // Deltas from neutral
+    const d1 = muir - muir0;
+    const d2 = (cardiac - muir) - (cardiac0 - muir0);
+    const d3 = (stile - cardiac) - (stile0 - cardiac0);
+    const d4 = (actual - stile) - (actual - stile0);
+
+    function deltaHtml(d, label) {
+      if (Math.abs(d) < 3) return `<div class="delta neutral">&mdash;</div>`;
+      const cls = d < 0 ? "faster" : "slower";
+      const prefix = d < 0 ? "" : "+";
+      return `<div class="delta ${cls}">${prefix}${fmtDelta(d)}</div>`;
+    }
+
+    html += `<div class="card ${t.cls}">
+      <div class="card-header">
+        <span class="place">${t.label}</span>
+        <span class="actual">Actual time: <span>${fmt(actual)}</span></span>
+      </div>
+      <div class="splits-row elapsed-row">
+        <div class="split-cell">
+          <div class="label">Muir Woods</div>
+          <div class="time">${fmt(muir)}</div>
+          <div class="seg">${fmt(seg1)} seg</div>
+          ${deltaHtml(d1)}
+        </div>
+        <div class="split-cell">
+          <div class="label">Cardiac</div>
+          <div class="time">${fmt(cardiac)}</div>
+          <div class="seg">${fmt(seg2)} seg</div>
+          ${deltaHtml(d2)}
+        </div>
+        <div class="split-cell">
+          <div class="label">Stile</div>
+          <div class="time">${fmt(stile)}</div>
+          <div class="seg">${fmt(seg3)} seg</div>
+          ${deltaHtml(d3)}
+        </div>
+        <div class="split-cell">
+          <div class="label">Finish</div>
+          <div class="time">${fmt(actual)}</div>
+          <div class="seg">${fmt(seg4)} seg</div>
+          ${deltaHtml(d4)}
+        </div>
+      </div>
+    </div>`;
+  }
+  resultsEl.innerHTML = html;
+}
+
+document.getElementById("sex").addEventListener("change", compute);
+document.getElementById("age").addEventListener("input", compute);
+document.getElementById("section").addEventListener("change", compute);
+document.getElementById("bias").addEventListener("input", compute);
+compute();
+</script>
+</body>
+</html>
