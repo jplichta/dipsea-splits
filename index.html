@@ -1,131 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dipsea Race Split Calculator</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
-  .container { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
-  h1 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; margin-bottom: 4px; }
-  .subtitle { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; }
-  .inputs { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
-  .field { display: flex; flex-direction: column; gap: 4px; }
-  .field label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  select, input[type=number] {
-    background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 8px;
-    padding: 10px 14px; font-size: 1rem; outline: none; transition: border-color 0.15s;
-  }
-  select:focus, input:focus { border-color: #3b82f6; }
-  input[type=number] { width: 80px; }
-  select { min-width: 100px; cursor: pointer; }
-  .group-badge { display: inline-flex; align-items: center; gap: 6px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 14px; font-size: 0.9rem; color: #94a3b8; min-height: 42px; }
-  .group-badge strong { color: #f1f5f9; font-size: 1.1rem; }
-  .group-badge .hs { color: #3b82f6; font-weight: 600; }
-
-  /* Tabs */
-  .tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #334155; }
-  .tab { padding: 10px 20px; font-size: 0.9rem; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
-  .tab:hover { color: #94a3b8; }
-  .tab.active { color: #f1f5f9; border-bottom-color: #3b82f6; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  /* Terrain bias slider */
-  .bias-control { margin-bottom: 20px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px 18px; }
-  .bias-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-  .bias-header label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  .bias-value { font-size: 0.85rem; color: #94a3b8; }
-  .bias-value span { color: #f1f5f9; font-weight: 600; }
-  .bias-slider-row { display: flex; align-items: center; gap: 10px; }
-  .bias-label-left, .bias-label-right { font-size: 0.7rem; color: #64748b; white-space: nowrap; min-width: 60px; }
-  .bias-label-right { text-align: right; }
-  input[type=range] {
-    flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px;
-    background: linear-gradient(to right, #059669, #334155 40%, #334155 60%, #d97706);
-    outline: none; cursor: pointer;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
-    background: #f1f5f9; border: 2px solid #3b82f6; cursor: pointer;
-  }
-  input[type=range]::-moz-range-thumb {
-    width: 20px; height: 20px; border-radius: 50%;
-    background: #f1f5f9; border: 2px solid #3b82f6; cursor: pointer;
-  }
-  .bias-ticks { display: flex; justify-content: space-between; margin-top: 2px; margin-left: 70px; margin-right: 70px; }
-  .bias-ticks span { font-size: 0.6rem; color: #475569; width: 20px; text-align: center; }
-  .bias-desc { font-size: 0.75rem; color: #64748b; margin-top: 6px; text-align: center; min-height: 1.2em; }
-  .bias-desc em { color: #94a3b8; font-style: normal; }
-
-  .results { display: flex; flex-direction: column; gap: 16px; }
-  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden; }
-  .card-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-  .card-header .place { font-weight: 700; font-size: 1rem; }
-  .card-header .actual { color: #94a3b8; font-size: 0.85rem; }
-  .card-header .actual span { color: #f1f5f9; font-weight: 600; font-size: 1rem; }
-  .splits-row { display: grid; grid-template-columns: repeat(4, 1fr); }
-  .split-cell { padding: 12px 8px; text-align: center; border-right: 1px solid #1e293b; }
-  .split-cell:last-child { border-right: none; }
-  .split-cell .label { font-size: 0.65rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .split-cell .time { font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .split-cell .seg { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
-  .split-cell .delta { font-size: 0.7rem; margin-top: 1px; }
-  .delta.faster { color: #34d399; }
-  .delta.slower { color: #fb923c; }
-  .delta.neutral { color: #475569; }
-  .elapsed-row { background: #0f172a; }
-  .qualify .card-header { background: #14532d; border-bottom-color: #166534; }
-  .qualify { border-color: #166534; }
-  .winner .card-header { background: #713f12; border-bottom-color: #854d0e; }
-  .winner { border-color: #854d0e; }
-  .blackshirt .card-header { background: #1e1b4b; border-bottom-color: #312e81; }
-  .blackshirt { border-color: #312e81; }
-  #no-results { display: none; color: #64748b; text-align: center; padding: 40px; font-size: 0.9rem; }
-  .start-info { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
-  .start-info .chip { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; color: #94a3b8; }
-  .start-info .chip span { color: #f1f5f9; font-weight: 600; }
-
-  /* Predictor tab */
-  .predict-inputs { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
-  .time-input { display: flex; gap: 4px; align-items: center; }
-  .time-input input { width: 56px; text-align: center; background: #1e293b; border: 1px solid #334155; color: #f1f5f9; border-radius: 8px; padding: 10px 6px; font-size: 1rem; outline: none; transition: border-color 0.15s; }
-  .time-input input:focus { border-color: #3b82f6; }
-  .time-input .sep { color: #94a3b8; font-weight: 600; font-size: 1.1rem; }
-  .predict-result { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
-  .predict-place { font-size: 2.5rem; font-weight: 700; color: #f8fafc; font-variant-numeric: tabular-nums; }
-  .predict-place .approx { font-size: 1rem; color: #64748b; font-weight: 400; }
-  .predict-detail { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
-  .predict-row { display: flex; justify-content: space-between; font-size: 0.85rem; }
-  .predict-row .lbl { color: #64748b; }
-  .predict-row .val { color: #f1f5f9; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .predict-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-top: 8px; }
-  .predict-badge.qual { background: #14532d; color: #34d399; border: 1px solid #166534; }
-  .predict-badge.black { background: #1e1b4b; color: #818cf8; border: 1px solid #312e81; }
-  .predict-badge.win { background: #713f12; color: #fbbf24; border: 1px solid #854d0e; }
-  .predict-badge.miss { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
-  #predict-empty { color: #64748b; text-align: center; padding: 40px; font-size: 0.9rem; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dipsea Race Split Calculator</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="container">
   <h1>Dipsea Split Calculator</h1>
-  <p class="subtitle">Based on 2025 results</p>
+  <p class="subtitle">Based on 2025 results &middot; 9 checkpoints</p>
 
   <!-- Runner profile -->
   <div class="inputs">
     <div class="field">
       <label>Sex</label>
-      <select id="sex"><option value="M">Male</option><option value="F">Female</option></select>
+      <select id="sex">
+        <option value="M" selected>Male</option>
+        <option value="F">Female</option>
+      </select>
     </div>
     <div class="field">
       <label>Age</label>
-      <input type="number" id="age" min="6" max="100" value="53">
+      <input type="number" id="age" min="6" max="100" value="21">
     </div>
     <div class="field">
       <label>Section</label>
-      <select id="section"><option value="INV">Invitational</option><option value="DR">Dipsea Runner</option></select>
+      <select id="section">
+        <option value="INV" selected>Invitational</option>
+        <option value="DR">Dipsea Runner</option>
+      </select>
     </div>
     <div class="field" style="justify-content:flex-end;">
       <div class="group-badge" id="group-info"></div>
@@ -133,6 +37,7 @@
   </div>
   <div class="start-info" id="start-info"></div>
 
+  <!-- Terrain bias -->
   <div class="bias-control">
     <div class="bias-header">
       <label>Terrain Strength</label>
@@ -165,10 +70,22 @@
       <div class="field">
         <label>Segment</label>
         <select id="checkpoint">
-            <option value="seg_s_m">Start → Muir Woods</option>
-            <option value="seg_m_c">Muir Woods → Cardiac</option>
-            <option value="seg_c_s">Cardiac → Stile</option>
-            <option value="seg_s_f">Stile → Finish</option>
+          <optgroup label="Full Segments">
+            <option value="seg_s_m">Start &rarr; Muir Woods</option>
+            <option value="seg_m_c">Muir Woods &rarr; Cardiac</option>
+            <option value="seg_c_s">Cardiac &rarr; Stile</option>
+            <option value="seg_s_f">Stile &rarr; Finish</option>
+          </optgroup>
+          <optgroup label="Sub-Segments">
+            <option value="s_wg">Start &rarr; Windy Gap</option>
+            <option value="wg_mw">Windy Gap &rarr; Muir Woods</option>
+            <option value="mw_dy">Muir Woods &rarr; Dynamite</option>
+            <option value="dy_bc">Dynamite &rarr; Btm Cardiac</option>
+            <option value="bc_ca">Btm Cardiac &rarr; Cardiac</option>
+            <option value="ca_sr">Cardiac &rarr; SR Bridge</option>
+            <option value="sr_st">SR Bridge &rarr; Stile</option>
+            <option value="st_fi">Stile &rarr; Finish</option>
+          </optgroup>
         </select>
       </div>
       <div class="field">
@@ -187,350 +104,7 @@
   </div>
 </div>
 
-<script>
-// ============================================================
-// SHARED DATA
-// ============================================================
-const D = {
-  hs_m: {6:25,7:21,8:16,9:13,10:11,11:9,12:7,13:6,14:5,15:4,16:3,17:2,18:1,19:1,20:0,21:0,22:0,23:0,24:0,25:0,26:1,27:1,28:1,29:1,30:1,31:1,32:1,33:2,34:2,35:2,36:2,37:2,38:2,39:2,40:2,41:2,42:3,43:3,44:3,45:4,46:4,47:4,48:5,49:5,50:6,51:6,52:6,53:6,54:7,55:7,56:8,57:9,58:10,59:10,60:11,61:12,62:13,63:14,64:14,65:15,66:16,67:17,68:18,69:19,70:20,71:22,72:23,73:24,74:25,75:25,76:25,77:25,78:25,79:25,80:25,81:25,82:25,83:25,84:25,85:25,86:25,87:25,88:25,89:25,90:25,91:25,92:25,93:25,94:25,95:25,96:25,97:25,98:25,99:25,100:25},
-  hs_f: {6:25,7:25,8:23,9:20,10:16,11:14,12:13,13:12,14:12,15:12,16:11,17:11,18:11,19:11,20:11,21:11,22:11,23:11,24:11,25:10,26:9,27:9,28:9,29:9,30:9,31:9,32:9,33:9,34:9,35:9,36:9,37:9,38:9,39:9,40:10,41:10,42:10,43:10,44:11,45:12,46:12,47:12,48:12,49:13,50:13,51:13,52:14,53:15,54:15,55:16,56:17,57:17,58:18,59:19,60:20,61:20,62:21,63:22,64:23,65:24,66:25,67:25,68:25,69:25,70:25,71:25,72:25,73:25,74:25,75:25,76:25,77:25,78:25,79:25,80:25,81:25,82:25,83:25,84:25,85:25,86:25,87:25,88:25,89:25,90:25,91:25,92:25,93:25,94:25,95:25,96:25,97:25,98:25,99:25,100:25},
-  grp_m: {6:"AAA",7:"C",8:"H",9:"L",10:"N",11:"Q",12:"T",13:"U",14:"V",15:"W",16:"X",17:"Y",18:"Z",19:"Z",20:"SCR",21:"SCR",22:"SCR",23:"SCR",24:"SCR",25:"SCR",26:"Z",27:"Z",28:"Z",29:"Z",30:"Z",31:"Z",32:"Z",33:"Y",34:"Y",35:"Y",36:"Y",37:"Y",38:"Y",39:"Y",40:"Y",41:"Y",42:"X",43:"X",44:"X",45:"W",46:"W",47:"W",48:"V",49:"V",50:"U",51:"U",52:"U",53:"U",54:"T",55:"T",56:"R",57:"Q",58:"P",59:"P",60:"N",61:"M",62:"L",63:"K",64:"K",65:"J",66:"H",67:"G",68:"F",69:"E",70:"D",71:"B",72:"A",73:"AA",74:"AAA",75:"AAA",76:"AAA",77:"AAA",78:"AAA",79:"AAA",80:"AAA",81:"AAA",82:"AAA",83:"AAA",84:"AAA",85:"AAA",86:"AAA",87:"AAA",88:"AAA",89:"AAA",90:"AAA",91:"AAA",92:"AAA",93:"AAA",94:"AAA",95:"AAA",96:"AAA",97:"AAA",98:"AAA",99:"AAA",100:"AAA"},
-  grp_f: {6:"AAA",7:"AAA",8:"A",9:"D",10:"H",11:"K",12:"L",13:"M",14:"M",15:"M",16:"N",17:"N",18:"N",19:"N",20:"N",21:"N",22:"N",23:"N",24:"N",25:"P",26:"Q",27:"Q",28:"Q",29:"Q",30:"Q",31:"Q",32:"Q",33:"Q",34:"Q",35:"Q",36:"Q",37:"Q",38:"Q",39:"Q",40:"P",41:"P",42:"P",43:"P",44:"N",45:"M",46:"M",47:"M",48:"M",49:"L",50:"L",51:"L",52:"K",53:"J",54:"J",55:"H",56:"G",57:"G",58:"F",59:"E",60:"D",61:"D",62:"C",63:"B",64:"A",65:"AA",66:"AAA",67:"AAA",68:"AAA",69:"AAA",70:"AAA",71:"AAA",72:"AAA",73:"AAA",74:"AAA",75:"AAA",76:"AAA",77:"AAA",78:"AAA",79:"AAA",80:"AAA",81:"AAA",82:"AAA",83:"AAA",84:"AAA",85:"AAA",86:"AAA",87:"AAA",88:"AAA",89:"AAA",90:"AAA",91:"AAA",92:"AAA",93:"AAA",94:"AAA",95:"AAA",96:"AAA",97:"AAA",98:"AAA",99:"AAA",100:"AAA"},
-  clocks: { "1":2788, "35":3198, "100":3531, "450":4270, "750":5865, "dr_winner":4636 },
-  props: {
-    "1":   {p1:0.2948,p2:0.3698,p3:0.3052,p4:0.0301},
-    "35":  {p1:0.2942,p2:0.3736,p3:0.3035,p4:0.0287},
-    "100": {p1:0.2888,p2:0.3770,p3:0.3058,p4:0.0284},
-    "450": {p1:0.2822,p2:0.3851,p3:0.3053,p4:0.0274},
-    "750": {p1:0.2894,p2:0.3816,p3:0.3023,p4:0.0268},
-    "dr_winner": {p1:0.3008,p2:0.3644,p3:0.3067,p4:0.0281}
-  },
-  dr_offset: 1621,
-  bias_p2_sd: 0.0144,
-  bias_p3_sd: 0.0137,
-  // Clock→place curve (every 5th place from 2025)
-  curve_c: [2788,2966,3051,3104,3135,3166,3186,3218,3236,3310,3342,3361,3392,3410,3426,3452,3463,3487,3506,3515,3537,3551,3565,3583,3591,3607,3630,3638,3656,3665,3678,3697,3713,3720,3730,3737,3746,3756,3771,3783,3799,3812,3820,3830,3847,3859,3867,3875,3878,3882,3890,3904,3919,3926,3937,3947,3953,3962,3973,3981,3988,4003,4008,4017,4029,4035,4040,4049,4056,4066,4076,4085,4094,4111,4118,4130,4139,4144,4149,4159,4162,4173,4182,4190,4200,4208,4212,4231,4254,4262,4270,4288,4302,4312,4327,4333,4348,4365,4370,4377,4396,4413,4433,4477,4496,4539,4577,4605,4638,4683,4717,4737,4801,4978,5000,5073,5112,5192,5263,5285,5319,5346,5389,5404,5435,5453,5472,5506,5525,5540,5568,5589,5611,5620,5635,5642,5666,5686,5696,5704,5726,5740,5765,5777,5781,5794,5806,5816,5839,5855,5866,5894,5914,5922,5929,5946,5966,5989,6000,6014,6027,6035,6049,6063,6066,6072,6091,6105,6124,6134,6148,6153,6168,6189,6202,6214,6219,6224,6237,6250,6258,6265,6269,6272,6286,6295,6310,6315,6324,6337,6362,6372,6382,6402,6412,6424,6431,6458,6481,6493,6505,6517,6529,6537,6554,6579,6593,6602,6611,6613,6618,6624,6634,6639,6643,6647,6654,6660,6672,6683,6687,6703,6714,6726,6738,6760,6771,6797,6831,6859,6876,6890,6903,6913,6928,6938,6946,6966,6977,7001,7021,7031,7049,7075,7088,7111,7120,7145,7168,7183,7198,7225,7257,7280,7299,7312,7319,7355,7419,7447,7468,7493,7520,7562,7590,7601,7626,7668,7691,7728,7755,7765,7841,7889,7941,7988,8064,8104,8128,8180,8262,8337,8375,8448,8512,8535,8624,8647,8673,8697,8746,8787,8825,8969,9165,9261,9357,9504,9740,10819,12322,13610],
-  curve_p: [1,6,11,16,21,26,31,36,41,46,51,56,61,66,71,76,81,86,91,96,101,106,111,116,121,126,131,136,141,146,151,156,161,166,171,176,181,186,191,196,201,206,211,216,221,226,231,236,241,246,251,256,261,266,271,276,281,286,291,296,301,306,311,316,321,326,331,336,341,346,351,356,361,366,371,376,381,386,391,396,401,406,411,416,421,426,431,436,441,446,451,456,461,466,471,476,481,486,491,496,501,506,511,516,521,526,531,536,541,546,551,556,561,566,571,576,581,586,591,596,601,606,611,616,621,626,631,636,641,646,651,656,661,666,671,676,681,686,691,696,701,706,711,716,721,726,731,736,741,746,751,756,761,766,771,776,781,786,791,796,801,806,811,816,821,826,831,836,841,846,851,856,861,866,871,876,881,886,891,896,901,906,911,916,921,926,931,936,941,946,951,956,961,966,971,976,981,986,991,996,1001,1006,1011,1016,1021,1026,1031,1036,1041,1046,1051,1056,1061,1066,1071,1076,1081,1086,1091,1096,1101,1106,1111,1116,1121,1126,1131,1136,1141,1146,1151,1156,1161,1166,1171,1176,1181,1186,1191,1196,1201,1206,1211,1216,1221,1226,1231,1236,1241,1246,1251,1256,1261,1266,1271,1276,1281,1286,1291,1296,1301,1306,1311,1316,1321,1326,1331,1336,1341,1346,1351,1356,1361,1366,1371,1376,1381,1386,1391,1396,1401,1406,1411,1416,1421,1426,1431,1436,1441,1446,1451,1456,1461,1466,1471,1476,1481,1486,1491,1496,1501,1502],
-  // Tier-specific proportions for iterative prediction
-  tier_props: [
-    {place:1,p1:0.2949,p2:0.3707,p3:0.3046,p4:0.0299},
-    {place:35,p1:0.2939,p2:0.3739,p3:0.3034,p4:0.0288},
-    {place:100,p1:0.2886,p2:0.3769,p3:0.3060,p4:0.0285},
-    {place:250,p1:0.2851,p2:0.3784,p3:0.3088,p4:0.0277},
-    {place:450,p1:0.2819,p2:0.3835,p3:0.3073,p4:0.0274},
-    {place:600,p1:0.2892,p2:0.3789,p3:0.3045,p4:0.0274},
-    {place:750,p1:0.2896,p2:0.3804,p3:0.3032,p4:0.0268},
-    {place:1000,p1:0.2850,p2:0.3806,p3:0.3083,p4:0.0262},
-    {place:1300,p1:0.2787,p2:0.3727,p3:0.3221,p4:0.0264},
-    {place:1502,p1:0.2756,p2:0.3691,p3:0.3287,p4:0.0266}
-  ]
-};
-
-// ============================================================
-// SHARED FUNCTIONS
-// ============================================================
-function fmt(secs) {
-  if (secs == null || secs <= 0) return "---";
-  const s = Math.round(secs);
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (h > 0) return h + ":" + String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
-  return m + ":" + String(sec).padStart(2,"0");
-}
-
-function fmtDelta(secs) {
-  const abs = Math.abs(Math.round(secs));
-  const m = Math.floor(abs / 60);
-  const s = abs % 60;
-  const sign = secs < -2 ? "-" : secs > 2 ? "+" : "";
-  return sign + m + ":" + String(s).padStart(2, "0");
-}
-
-function startTime(hs, section) {
-  const base = section === "INV" ? 25 : 52;
-  const offset = base - hs;
-  return "8:" + String(offset).padStart(2, "0");
-}
-
-function getHsGrp() {
-  const sex = document.getElementById("sex").value;
-  const age = parseInt(document.getElementById("age").value);
-  if (isNaN(age) || age < 6 || age > 100) return null;
-  const hsMap = sex === "M" ? D.hs_m : D.hs_f;
-  const grpMap = sex === "M" ? D.grp_m : D.grp_f;
-  return { hs: hsMap[age], grp: grpMap[age] };
-}
-
-function updateShared() {
-  const info = getHsGrp();
-  const section = document.getElementById("section").value;
-  const groupInfo = document.getElementById("group-info");
-  const startInfo = document.getElementById("start-info");
-  if (!info || info.hs == null) {
-    groupInfo.innerHTML = "";
-    startInfo.innerHTML = "";
-    return;
-  }
-  groupInfo.innerHTML = `Group <strong>${info.grp}</strong> &middot; <span class="hs">+${info.hs} min</span>`;
-  const st = startTime(info.hs, section);
-  startInfo.innerHTML = `<div class="chip">Start time: <span>${st}</span></div>` +
-    `<div class="chip">Section: <span>${section === "INV" ? "Invitational" : "Dipsea Runner"}</span></div>`;
-}
-
-// Interpolate place from clock time
-function clockToPlace(clockSecs) {
-  const cc = D.curve_c, pp = D.curve_p;
-  if (clockSecs <= cc[0]) return pp[0];
-  if (clockSecs >= cc[cc.length-1]) return pp[pp.length-1];
-  for (let i = 0; i < cc.length - 1; i++) {
-    if (clockSecs >= cc[i] && clockSecs <= cc[i+1]) {
-      const frac = (clockSecs - cc[i]) / (cc[i+1] - cc[i]);
-      return Math.round(pp[i] + frac * (pp[i+1] - pp[i]));
-    }
-  }
-  return pp[pp.length-1];
-}
-
-// Get proportions for a given placement (interpolate between tiers)
-function getPropsForPlace(place) {
-  const tp = D.tier_props;
-  if (place <= tp[0].place) return tp[0];
-  if (place >= tp[tp.length-1].place) return tp[tp.length-1];
-  for (let i = 0; i < tp.length - 1; i++) {
-    if (place >= tp[i].place && place <= tp[i+1].place) {
-      const frac = (place - tp[i].place) / (tp[i+1].place - tp[i].place);
-      return {
-        p1: tp[i].p1 + frac * (tp[i+1].p1 - tp[i].p1),
-        p2: tp[i].p2 + frac * (tp[i+1].p2 - tp[i].p2),
-        p3: tp[i].p3 + frac * (tp[i+1].p3 - tp[i].p3),
-        p4: tp[i].p4 + frac * (tp[i+1].p4 - tp[i].p4),
-      };
-    }
-  }
-  return tp[tp.length-1];
-}
-
-// ============================================================
-// TAB SWITCHING
-// ============================================================
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-  });
-});
-
-// ============================================================
-// TAB 1: SPLIT TARGETS
-// ============================================================
-function updateBiasLabel() {
-  const bias = parseFloat(document.getElementById("bias").value);
-  const valueEl = document.getElementById("bias-value");
-  const descEl = document.getElementById("bias-desc");
-  if (bias === 0) {
-    valueEl.innerHTML = "Neutral";
-    descEl.innerHTML = "";
-  } else if (bias < 0) {
-    const strength = bias === -2 ? "Strong" : bias <= -1 ? "Moderate" : "Slight";
-    valueEl.innerHTML = `<span>${strength} uphill</span>`;
-    descEl.innerHTML = `<em>Faster</em> Muir\u2192Cardiac, <em>slower</em> Cardiac\u2192Stile`;
-  } else {
-    const strength = bias === 2 ? "Strong" : bias >= 1 ? "Moderate" : "Slight";
-    valueEl.innerHTML = `<span>${strength} downhill</span>`;
-    descEl.innerHTML = `<em>Slower</em> Muir\u2192Cardiac, <em>faster</em> Cardiac\u2192Stile`;
-  }
-}
-
-function computeTargets() {
-  const info = getHsGrp();
-  const section = document.getElementById("section").value;
-  const bias = parseFloat(document.getElementById("bias").value);
-  const resultsEl = document.getElementById("results");
-  const noResults = document.getElementById("no-results");
-
-  updateBiasLabel();
-  updateShared();
-
-  if (!info || info.hs == null) {
-    resultsEl.innerHTML = "";
-    noResults.style.display = "block";
-    return;
-  }
-  noResults.style.display = "none";
-  const hs = info.hs;
-
-  let targets;
-  if (section === "INV") {
-    targets = [
-      { key: "1", label: "1st Place (Winner)", cls: "winner" },
-      { key: "35", label: "35th Place (Black Shirt)", cls: "blackshirt" },
-      { key: "100", label: "100th Place", cls: "" },
-      { key: "450", label: "450th Place (INV Qualifying)", cls: "qualify" },
-    ];
-  } else {
-    targets = [
-      { key: "dr_winner", label: "DR Section Winner (Place ~540)", cls: "winner" },
-      { key: "750", label: "750th Place (Qualifying)", cls: "qualify" },
-    ];
-  }
-
-  let html = "";
-  for (const t of targets) {
-    const clock = D.clocks[t.key];
-    const baseProps = D.props[t.key];
-    let actual = section === "INV" ? clock + hs * 60 : clock + hs * 60 - D.dr_offset;
-    if (actual <= 0) {
-      html += `<div class="card ${t.cls}"><div class="card-header"><span class="place">${t.label}</span><span class="actual">Not achievable from this group</span></div></div>`;
-      continue;
-    }
-    const p2_shift = bias * D.bias_p2_sd;
-    const p3_shift = -bias * D.bias_p3_sd;
-    const p1 = baseProps.p1, p2 = baseProps.p2 + p2_shift, p3 = baseProps.p3 + p3_shift;
-
-    const muir0 = actual * baseProps.p1, cardiac0 = actual * (baseProps.p1 + baseProps.p2), stile0 = actual * (baseProps.p1 + baseProps.p2 + baseProps.p3);
-    const muir = actual * p1, cardiac = actual * (p1 + p2), stile = actual * (p1 + p2 + p3);
-    const seg1 = muir, seg2 = cardiac - muir, seg3 = stile - cardiac, seg4 = actual - stile;
-    const d1 = muir - muir0, d2 = seg2 - (cardiac0 - muir0), d3 = seg3 - (stile0 - cardiac0), d4 = seg4 - (actual - stile0);
-
-    function deltaHtml(d) {
-      if (Math.abs(d) < 3) return `<div class="delta neutral">&mdash;</div>`;
-      const cls = d < 0 ? "faster" : "slower";
-      const prefix = d < 0 ? "" : "+";
-      return `<div class="delta ${cls}">${prefix}${fmtDelta(d)}</div>`;
-    }
-
-    html += `<div class="card ${t.cls}">
-      <div class="card-header"><span class="place">${t.label}</span><span class="actual">Actual time: <span>${fmt(actual)}</span></span></div>
-      <div class="splits-row elapsed-row">
-        <div class="split-cell"><div class="label">Muir Woods</div><div class="time">${fmt(muir)}</div><div class="seg">${fmt(seg1)} seg</div>${deltaHtml(d1)}</div>
-        <div class="split-cell"><div class="label">Cardiac</div><div class="time">${fmt(cardiac)}</div><div class="seg">${fmt(seg2)} seg</div>${deltaHtml(d2)}</div>
-        <div class="split-cell"><div class="label">Stile</div><div class="time">${fmt(stile)}</div><div class="seg">${fmt(seg3)} seg</div>${deltaHtml(d3)}</div>
-        <div class="split-cell"><div class="label">Finish</div><div class="time">${fmt(actual)}</div><div class="seg">${fmt(seg4)} seg</div>${deltaHtml(d4)}</div>
-      </div>
-    </div>`;
-  }
-  resultsEl.innerHTML = html;
-}
-
-// ============================================================
-// TAB 2: PREDICT PLACEMENT
-// ============================================================
-function computePredict() {
-  const info = getHsGrp();
-  const section = document.getElementById("section").value;
-  const output = document.getElementById("predict-output");
-  const empty = document.getElementById("predict-empty");
-
-  updateShared();
-
-  if (!info || info.hs == null) { output.innerHTML = ""; empty.style.display = "block"; return; }
-
-  const h = parseInt(document.getElementById("split-h").value) || 0;
-  const m = parseInt(document.getElementById("split-m").value) || 0;
-  const s = parseInt(document.getElementById("split-s").value) || 0;
-  const splitSecs = h * 3600 + m * 60 + s;
-
-  if (splitSecs <= 0) { output.innerHTML = ""; empty.style.display = "block"; return; }
-  empty.style.display = "none";
-
-  const hs = info.hs;
-  const checkpoint = document.getElementById("checkpoint").value;
-
-  const bias = parseFloat(document.getElementById("bias").value);
-  const p2_shift = bias * D.bias_p2_sd;
-  const p3_shift = -bias * D.bias_p3_sd;
-
-  // Apply terrain bias to proportions, return fraction for the given segment
-  function biasedFrac(pr, cp) {
-    const bp2 = pr.p2 + p2_shift;
-    const bp3 = pr.p3 + p3_shift;
-    switch(cp) {
-      case "seg_s_m": return pr.p1;
-      case "seg_m_c": return bp2;
-      case "seg_c_s": return bp3;
-      case "seg_s_f": return pr.p4;
-      default: return pr.p1;
-    }
-  }
-
-  // Iterative: estimate actual from split, get placement, refine proportions
-  let place = 500; // initial guess
-  for (let iter = 0; iter < 3; iter++) {
-    const pr = getPropsForPlace(place);
-    const frac = biasedFrac(pr, checkpoint);
-    const actualEst = splitSecs / frac;
-    let clockEst;
-    if (section === "INV") {
-      clockEst = actualEst - hs * 60;
-    } else {
-      clockEst = actualEst - hs * 60 + D.dr_offset;
-    }
-    place = clockToPlace(clockEst);
-  }
-
-  // Final computation with converged place
-  const pr = getPropsForPlace(place);
-  const frac = biasedFrac(pr, checkpoint);
-
-  const actualFinal = splitSecs / frac;
-  let clockFinal = section === "INV" ? actualFinal - hs * 60 : actualFinal - hs * 60 + D.dr_offset;
-  const placeFinal = clockToPlace(clockFinal);
-
-  // Predicted splits at all checkpoints (with bias applied)
-  const bp2 = pr.p2 + p2_shift, bp3 = pr.p3 + p3_shift;
-  const predMuir = actualFinal * pr.p1;
-  const predCardiac = actualFinal * (pr.p1 + bp2);
-  const predStile = actualFinal * (pr.p1 + bp2 + bp3);
-
-  // Badge
-  let badge = "";
-  if (section === "INV") {
-    if (placeFinal <= 1) badge = `<span class="predict-badge win">Winner</span>`;
-    else if (placeFinal <= 35) badge = `<span class="predict-badge black">Black Shirt</span>`;
-    else if (placeFinal <= 100) badge = `<span class="predict-badge qual">Top 100</span>`;
-    else if (placeFinal <= 450) badge = `<span class="predict-badge qual">INV Qualifying</span>`;
-    else badge = `<span class="predict-badge miss">Does not qualify (INV top 450)</span>`;
-  } else {
-    if (placeFinal <= 540) badge = `<span class="predict-badge win">DR Section Winner pace</span>`;
-    else if (placeFinal <= 750) badge = `<span class="predict-badge qual">Qualifying</span>`;
-    else badge = `<span class="predict-badge miss">Does not qualify (top 750)</span>`;
-  }
-
-  output.innerHTML = `<div class="predict-result">
-    <div class="predict-place"><span class="approx">~</span>${placeFinal} <span class="approx">/ 1502</span></div>
-    ${badge}
-    <div class="predict-detail">
-      <div class="predict-row"><span class="lbl">Predicted finish (actual)</span><span class="val">${fmt(actualFinal)}</span></div>
-      <div class="predict-row"><span class="lbl">Predicted clock time</span><span class="val">${fmt(clockFinal)}</span></div>
-    </div>
-    <div style="margin-top:16px; border-top:1px solid #334155; padding-top:12px;">
-      <div style="font-size:0.75rem; color:#64748b; text-transform:uppercase; letter-spacing:0.05em; font-weight:600; margin-bottom:8px;">Predicted Splits</div>
-      <div class="splits-row elapsed-row" style="border-radius:8px; overflow:hidden;">
-        <div class="split-cell"><div class="label">Muir Woods</div><div class="time">${fmt(predMuir)}</div></div>
-        <div class="split-cell"><div class="label">Cardiac</div><div class="time">${fmt(predCardiac)}</div></div>
-        <div class="split-cell"><div class="label">Stile</div><div class="time">${fmt(predStile)}</div></div>
-        <div class="split-cell"><div class="label">Finish</div><div class="time">${fmt(actualFinal)}</div></div>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ============================================================
-// EVENT LISTENERS
-// ============================================================
-function computeAll() { computeTargets(); computePredict(); }
-document.getElementById("sex").addEventListener("change", computeAll);
-document.getElementById("age").addEventListener("input", computeAll);
-document.getElementById("section").addEventListener("change", computeAll);
-document.getElementById("bias").addEventListener("input", computeAll);
-document.getElementById("checkpoint").addEventListener("change", computePredict);
-document.getElementById("split-h").addEventListener("input", computePredict);
-document.getElementById("split-m").addEventListener("input", computePredict);
-document.getElementById("split-s").addEventListener("input", computePredict);
-computeAll();
-</script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
