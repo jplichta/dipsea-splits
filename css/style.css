@@ -177,6 +177,14 @@ input[type=range]::-moz-range-thumb {
 
 /* Predictor tab */
 .predict-inputs { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
+.predict-inputs.dim { opacity: 0.45; }
+.predict-divider {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  color: var(--text-faint); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.predict-divider::before, .predict-divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--border);
+}
 .time-input { display: flex; gap: 4px; align-items: center; }
 .time-input input {
   width: 56px; text-align: center;

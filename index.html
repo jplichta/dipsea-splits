@@ -91,7 +91,7 @@
         </select>
       </div>
       <div class="field">
-        <label>Time</label>
+        <label>Split Time</label>
         <div class="time-input">
           <input type="number" id="split-h" min="0" max="9" value="0" placeholder="H">
           <span class="sep">:</span>
@@ -101,8 +101,21 @@
         </div>
       </div>
     </div>
+    <div class="predict-divider"><span>or</span></div>
+    <div class="predict-inputs">
+      <div class="field">
+        <label>Target Actual Time</label>
+        <div class="time-input">
+          <input type="number" id="actual-h" min="0" max="9" value="" placeholder="H">
+          <span class="sep">:</span>
+          <input type="number" id="actual-m" min="0" max="59" value="" placeholder="MM">
+          <span class="sep">:</span>
+          <input type="number" id="actual-s" min="0" max="59" value="" placeholder="SS">
+        </div>
+      </div>
+    </div>
     <div id="predict-output"></div>
-    <div id="predict-empty">Enter a split time to predict your finish placement.</div>
+    <div id="predict-empty">Enter a split time or target actual time to predict placement.</div>
   </div>
 </div>
 

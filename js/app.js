@@ -254,31 +254,66 @@ function computeTargets() {
 
 // ── Predict Placement tab ───────────────────────────────────
 
-function computePredict() {
-  const info = getHsGrp();
-  const section = document.getElementById("section").value;
+// Track which input mode was last used
+let predictMode = "split";
+
+function renderPrediction(actualFinal, clockFinal, placeFinal, bp, section) {
   const output = document.getElementById("predict-output");
   const empty = document.getElementById("predict-empty");
+  const elapsed = CHECKPOINTS.map((cp) => actualFinal * cp.cumFn(bp));
+  const badge = getBadge(section, placeFinal);
 
+  empty.style.display = "none";
+  output.innerHTML = `
+    <div class="predict-result">
+      <div class="predict-place"><span class="approx">~</span>${placeFinal} <span class="approx">/ 1502</span></div>
+      ${badge}
+      <div class="predict-detail">
+        <div class="predict-row"><span class="lbl">Predicted finish (actual)</span><span class="val">${fmt(actualFinal)}</span></div>
+        <div class="predict-row"><span class="lbl">Predicted clock time</span><span class="val">${fmt(clockFinal)}</span></div>
+      </div>
+      <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
+        <div class="predict-splits-label">Predicted Splits</div>
+        <div class="splits-row elapsed-row three-col" style="border-radius:8px 8px 0 0; overflow:hidden;">
+          ${buildPredRow(elapsed, 0, 3)}
+        </div>
+        <div class="row-divider"></div>
+        <div class="splits-row elapsed-row three-col">
+          ${buildPredRow(elapsed, 3, 6)}
+        </div>
+        <div class="row-divider"></div>
+        <div class="splits-row elapsed-row three-col" style="border-radius:0 0 8px 8px; overflow:hidden;">
+          ${buildPredRow(elapsed, 6, 9)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function clearPrediction() {
+  document.getElementById("predict-output").innerHTML = "";
+  document.getElementById("predict-empty").style.display = "block";
+}
+
+function updatePredictDim() {
+  const splitRow = document.querySelectorAll(".predict-inputs")[0];
+  const actualRow = document.querySelectorAll(".predict-inputs")[1];
+  splitRow.classList.toggle("dim", predictMode === "actual");
+  actualRow.classList.toggle("dim", predictMode === "split");
+}
+
+function computeFromSplit() {
+  const info = getHsGrp();
+  const section = document.getElementById("section").value;
   updateShared();
 
-  if (!info || info.hs == null) {
-    output.innerHTML = "";
-    empty.style.display = "block";
-    return;
-  }
+  if (!info || info.hs == null) { clearPrediction(); return; }
 
   const h = parseInt(document.getElementById("split-h").value) || 0;
   const m = parseInt(document.getElementById("split-m").value) || 0;
   const s = parseInt(document.getElementById("split-s").value) || 0;
   const splitSecs = h * 3600 + m * 60 + s;
 
-  if (splitSecs <= 0) {
-    output.innerHTML = "";
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
+  if (splitSecs <= 0) { clearPrediction(); return; }
 
   const hs = info.hs;
   const checkpoint = document.getElementById("checkpoint").value;
@@ -307,34 +342,43 @@ function computePredict() {
     : actualFinal - hs * 60 + D.dr_offset;
   const placeFinal = clockToPlace(clockFinal);
 
-  const elapsed = CHECKPOINTS.map((cp) => actualFinal * cp.cumFn(bp));
+  renderPrediction(actualFinal, clockFinal, placeFinal, bp, section);
+}
 
-  // Badge
-  const badge = getBadge(section, placeFinal);
+function computeFromActual() {
+  const info = getHsGrp();
+  const section = document.getElementById("section").value;
+  updateShared();
 
-  output.innerHTML = `
-    <div class="predict-result">
-      <div class="predict-place"><span class="approx">~</span>${placeFinal} <span class="approx">/ 1502</span></div>
-      ${badge}
-      <div class="predict-detail">
-        <div class="predict-row"><span class="lbl">Predicted finish (actual)</span><span class="val">${fmt(actualFinal)}</span></div>
-        <div class="predict-row"><span class="lbl">Predicted clock time</span><span class="val">${fmt(clockFinal)}</span></div>
-      </div>
-      <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
-        <div class="predict-splits-label">Predicted Splits</div>
-        <div class="splits-row elapsed-row three-col" style="border-radius:8px 8px 0 0; overflow:hidden;">
-          ${buildPredRow(elapsed, 0, 3)}
-        </div>
-        <div class="row-divider"></div>
-        <div class="splits-row elapsed-row three-col">
-          ${buildPredRow(elapsed, 3, 6)}
-        </div>
-        <div class="row-divider"></div>
-        <div class="splits-row elapsed-row three-col" style="border-radius:0 0 8px 8px; overflow:hidden;">
-          ${buildPredRow(elapsed, 6, 9)}
-        </div>
-      </div>
-    </div>`;
+  if (!info || info.hs == null) { clearPrediction(); return; }
+
+  const h = parseInt(document.getElementById("actual-h").value) || 0;
+  const m = parseInt(document.getElementById("actual-m").value) || 0;
+  const s = parseInt(document.getElementById("actual-s").value) || 0;
+  const actualSecs = h * 3600 + m * 60 + s;
+
+  if (actualSecs <= 0) { clearPrediction(); return; }
+
+  const hs = info.hs;
+  const bias = parseFloat(document.getElementById("bias").value);
+
+  const clockFinal = section === "INV"
+    ? actualSecs - hs * 60
+    : actualSecs - hs * 60 + D.dr_offset;
+  const placeFinal = clockToPlace(clockFinal);
+  const pr = getPropsForPlace(placeFinal);
+  const bp = biasProps(pr, bias);
+
+  renderPrediction(actualSecs, clockFinal, placeFinal, bp, section);
+}
+
+function computePredict() {
+  updatePredictDim();
+  if (predictMode === "actual") {
+    computeFromActual();
+  } else {
+    computeFromSplit();
+  }
 }
 
 function buildPredRow(elapsed, start, end) {
@@ -372,10 +416,17 @@ document.getElementById("sex").addEventListener("change", computeAll);
 document.getElementById("age").addEventListener("input", computeAll);
 document.getElementById("section").addEventListener("change", computeAll);
 document.getElementById("bias").addEventListener("input", computeAll);
-document.getElementById("checkpoint").addEventListener("change", computePredict);
-document.getElementById("split-h").addEventListener("input", computePredict);
-document.getElementById("split-m").addEventListener("input", computePredict);
-document.getElementById("split-s").addEventListener("input", computePredict);
+
+// Split inputs → switch to split mode
+document.getElementById("checkpoint").addEventListener("change", () => { predictMode = "split"; computePredict(); });
+document.getElementById("split-h").addEventListener("input", () => { predictMode = "split"; computePredict(); });
+document.getElementById("split-m").addEventListener("input", () => { predictMode = "split"; computePredict(); });
+document.getElementById("split-s").addEventListener("input", () => { predictMode = "split"; computePredict(); });
+
+// Actual time inputs → switch to actual mode
+document.getElementById("actual-h").addEventListener("input", () => { predictMode = "actual"; computePredict(); });
+document.getElementById("actual-m").addEventListener("input", () => { predictMode = "actual"; computePredict(); });
+document.getElementById("actual-s").addEventListener("input", () => { predictMode = "actual"; computePredict(); });
 
 // Initial render
 computeAll();
