@@ -66,10 +66,14 @@
 
   <!-- Tab 2: Predict Placement -->
   <div class="tab-content" id="tab-predict">
-    <div class="predict-inputs">
+    <div class="predict-inputs" id="input-split">
       <div class="field">
         <label>Segment</label>
         <select id="checkpoint">
+          <optgroup label="From Start (Cumulative)">
+            <option value="cum_s_pan">Start &rarr; Panoramic</option>
+            <option value="cum_s_mw">Start &rarr; Muir Woods</option>
+          </optgroup>
           <optgroup label="Full Segments">
             <option value="seg_s_m">Start &rarr; Muir Woods</option>
             <option value="seg_m_c">Muir Woods &rarr; Cardiac</option>
@@ -93,18 +97,18 @@
       <div class="field">
         <label>Split Time</label>
         <div class="time-input">
-          <input type="number" id="split-h" min="0" max="9" value="0" placeholder="H">
+          <input type="number" id="split-h" min="0" max="9" value="" placeholder="H">
           <span class="sep">:</span>
-          <input type="number" id="split-m" min="0" max="59" value="24" placeholder="MM">
+          <input type="number" id="split-m" min="0" max="59" value="" placeholder="MM">
           <span class="sep">:</span>
-          <input type="number" id="split-s" min="0" max="59" value="49" placeholder="SS">
+          <input type="number" id="split-s" min="0" max="59" value="" placeholder="SS">
         </div>
       </div>
     </div>
     <div class="predict-divider"><span>or</span></div>
-    <div class="predict-inputs">
+    <div class="predict-inputs" id="input-actual">
       <div class="field">
-        <label>Target Actual Time</label>
+        <label>Target Finish Time</label>
         <div class="time-input">
           <input type="number" id="actual-h" min="0" max="9" value="" placeholder="H">
           <span class="sep">:</span>
@@ -114,8 +118,24 @@
         </div>
       </div>
     </div>
+    <div class="predict-divider"><span>or</span></div>
+    <div class="predict-inputs" id="input-place">
+      <div class="field">
+        <label>Target Placement</label>
+        <div class="place-presets">
+          <button class="preset" data-place="1">1st</button>
+          <button class="preset" data-place="35">35th</button>
+          <button class="preset" data-place="100">100th</button>
+          <button class="preset" data-place="450">450th</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Custom</label>
+        <input type="number" id="target-place" min="1" max="1500" value="" placeholder="1–1500">
+      </div>
+    </div>
     <div id="predict-output"></div>
-    <div id="predict-empty">Enter a split time or target actual time to predict placement.</div>
+    <div id="predict-empty">Enter a split time, target finish time, or target placement.</div>
   </div>
 </div>
 

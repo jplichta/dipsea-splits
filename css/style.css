@@ -215,6 +215,18 @@ input[type=range]::-moz-range-thumb {
 .predict-badge.win { background: var(--amber-dark); color: var(--amber-text); border: 1px solid var(--amber-border); }
 .predict-badge.miss { background: var(--red-dark); color: var(--red-text); border: 1px solid var(--red-border); }
 
+/* Placement preset buttons */
+.place-presets { display: flex; gap: 6px; }
+.preset {
+  background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
+  border-radius: var(--radius); padding: 9px 14px; font-size: 0.9rem;
+  cursor: pointer; transition: all 0.15s; font-weight: 500;
+}
+.preset:hover { border-color: var(--accent); color: var(--text-body); }
+.preset.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+#target-place { width: 100px; }
+
 #predict-empty { color: var(--text-dim); text-align: center; padding: 40px; font-size: 0.9rem; }
 
 .predict-splits-label {

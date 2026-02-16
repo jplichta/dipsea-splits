@@ -121,7 +121,11 @@ function segFrac(props, segKey) {
     case "seg_m_c": return props.p2;
     case "seg_c_s": return props.p3;
     case "seg_s_f": return props.p4;
-    default:        return props.p1;
+    // Cumulative from-start segments
+    case "cum_full":  return 1.0;
+    case "cum_s_pan": return props.p1 * S.windy_gap_in_p1;
+    case "cum_s_mw":  return props.p1;
+    default:          return props.p1;
   }
 }
 
@@ -295,10 +299,14 @@ function clearPrediction() {
 }
 
 function updatePredictDim() {
-  const splitRow = document.querySelectorAll(".predict-inputs")[0];
-  const actualRow = document.querySelectorAll(".predict-inputs")[1];
-  splitRow.classList.toggle("dim", predictMode === "actual");
-  actualRow.classList.toggle("dim", predictMode === "split");
+  document.getElementById("input-split").classList.toggle("dim", predictMode !== "split");
+  document.getElementById("input-actual").classList.toggle("dim", predictMode !== "actual");
+  document.getElementById("input-place").classList.toggle("dim", predictMode !== "place");
+  // Update preset button active states
+  const place = parseInt(document.getElementById("target-place").value) || 0;
+  document.querySelectorAll(".preset").forEach((btn) => {
+    btn.classList.toggle("active", predictMode === "place" && parseInt(btn.dataset.place) === place);
+  });
 }
 
 function computeFromSplit() {
@@ -372,10 +380,50 @@ function computeFromActual() {
   renderPrediction(actualSecs, clockFinal, placeFinal, bp, section);
 }
 
+function placeToClock(place) {
+  const { curve_c: cc, curve_p: pp } = D;
+  if (place <= pp[0]) return cc[0];
+  if (place >= pp[pp.length - 1]) return cc[cc.length - 1];
+  for (let i = 0; i < pp.length - 1; i++) {
+    if (place >= pp[i] && place <= pp[i + 1]) {
+      const frac = (place - pp[i]) / (pp[i + 1] - pp[i]);
+      return Math.round(cc[i] + frac * (cc[i + 1] - cc[i]));
+    }
+  }
+  return cc[cc.length - 1];
+}
+
+function computeFromPlace() {
+  const info = getHsGrp();
+  const section = document.getElementById("section").value;
+  updateShared();
+
+  if (!info || info.hs == null) { clearPrediction(); return; }
+
+  const place = parseInt(document.getElementById("target-place").value) || 0;
+  if (place < 1 || place > 1500) { clearPrediction(); return; }
+
+  const hs = info.hs;
+  const bias = parseFloat(document.getElementById("bias").value);
+  const clockFinal = placeToClock(place);
+  const actualFinal = section === "INV"
+    ? clockFinal + hs * 60
+    : clockFinal + hs * 60 - D.dr_offset;
+
+  if (actualFinal <= 0) { clearPrediction(); return; }
+
+  const pr = getPropsForPlace(place);
+  const bp = biasProps(pr, bias);
+
+  renderPrediction(actualFinal, clockFinal, place, bp, section);
+}
+
 function computePredict() {
   updatePredictDim();
   if (predictMode === "actual") {
     computeFromActual();
+  } else if (predictMode === "place") {
+    computeFromPlace();
   } else {
     computeFromSplit();
   }
@@ -427,6 +475,16 @@ document.getElementById("split-s").addEventListener("input", () => { predictMode
 document.getElementById("actual-h").addEventListener("input", () => { predictMode = "actual"; computePredict(); });
 document.getElementById("actual-m").addEventListener("input", () => { predictMode = "actual"; computePredict(); });
 document.getElementById("actual-s").addEventListener("input", () => { predictMode = "actual"; computePredict(); });
+
+// Placement inputs → switch to place mode
+document.getElementById("target-place").addEventListener("input", () => { predictMode = "place"; computePredict(); });
+document.querySelectorAll(".preset").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.getElementById("target-place").value = btn.dataset.place;
+    predictMode = "place";
+    computePredict();
+  });
+});
 
 // Initial render
 computeAll();
