@@ -100,6 +100,7 @@ const D = {
   // Sub-split proportions (fraction through parent segment at each sub-checkpoint)
   // Derived from Strava segment data + user activity 2/14/2026
   sub: {
+    top_stairs_in_p1: 0.315,      // Start → Top of Dipsea Stairs = 31.5% of p1
     windy_gap_in_p1: 0.428,       // Start → Windy Gap = 42.8% of p1
     dynamite_in_p2: 0.33,         // Muir Woods → top of Dynamite = 33% of p2
     bottom_cardiac_in_p2: 0.92,   // Muir Woods → bottom of Cardiac climb = 92% of p2
@@ -190,6 +191,7 @@ const D = {
 // Course checkpoint definitions (order matches race course)
 // cumFn returns cumulative fraction of total time at each checkpoint
 const CHECKPOINTS = [
+  { key: "ts", label: "Top of Stairs", short: "Top Stairs", cumFn: (p) => p.p1 * D.sub.top_stairs_in_p1 },
   { key: "wg", label: "Windy Gap",   short: "W.Gap",    cumFn: (p) => p.p1 * D.sub.windy_gap_in_p1 },
   { key: "mw", label: "Muir Woods",  short: "Muir Wds", cumFn: (p) => p.p1 },
   { key: "dy", label: "Dynamite",    short: "Dynamite",  cumFn: (p) => p.p1 + p.p2 * D.sub.dynamite_in_p2 },

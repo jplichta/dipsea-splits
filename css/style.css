@@ -147,6 +147,7 @@ input[type=range]::-moz-range-thumb {
 .card-header .actual span { color: var(--text-body); font-weight: 600; font-size: 1rem; }
 
 .splits-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+.splits-row.three-col { grid-template-columns: repeat(3, 1fr); }
 .split-cell { padding: 10px 6px; text-align: center; border-right: 1px solid var(--border-light); }
 .split-cell:last-child { border-right: none; }
 .split-cell .label {

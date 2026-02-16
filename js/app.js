@@ -107,6 +107,8 @@ function getPropsForPlace(place) {
 function segFrac(props, segKey) {
   const S = D.sub;
   switch (segKey) {
+    case "s_ts":    return props.p1 * S.top_stairs_in_p1;
+    case "ts_wg":   return props.p1 * (S.windy_gap_in_p1 - S.top_stairs_in_p1);
     case "s_wg":    return props.p1 * S.windy_gap_in_p1;
     case "wg_mw":   return props.p1 * (1 - S.windy_gap_in_p1);
     case "mw_dy":   return props.p2 * S.dynamite_in_p2;
@@ -240,9 +242,11 @@ function computeTargets() {
           <span class="place">${t.label}</span>
           <span class="actual">Actual time: <span>${fmt(actual)}</span></span>
         </div>
-        <div class="splits-row elapsed-row">${buildSplitRow(CHECKPOINTS, elapsed_b, segs_b, deltas, 0, 4)}</div>
+        <div class="splits-row elapsed-row three-col">${buildSplitRow(CHECKPOINTS, elapsed_b, segs_b, deltas, 0, 3)}</div>
         <div class="row-divider"></div>
-        <div class="splits-row elapsed-row">${buildSplitRow(CHECKPOINTS, elapsed_b, segs_b, deltas, 4, 8)}</div>
+        <div class="splits-row elapsed-row three-col">${buildSplitRow(CHECKPOINTS, elapsed_b, segs_b, deltas, 3, 6)}</div>
+        <div class="row-divider"></div>
+        <div class="splits-row elapsed-row three-col">${buildSplitRow(CHECKPOINTS, elapsed_b, segs_b, deltas, 6, 9)}</div>
       </div>`;
   }
   resultsEl.innerHTML = html;
@@ -318,12 +322,16 @@ function computePredict() {
       </div>
       <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:12px;">
         <div class="predict-splits-label">Predicted Splits</div>
-        <div class="splits-row elapsed-row" style="border-radius:8px 8px 0 0; overflow:hidden;">
-          ${buildPredRow(elapsed, 0, 4)}
+        <div class="splits-row elapsed-row three-col" style="border-radius:8px 8px 0 0; overflow:hidden;">
+          ${buildPredRow(elapsed, 0, 3)}
         </div>
         <div class="row-divider"></div>
-        <div class="splits-row elapsed-row" style="border-radius:0 0 8px 8px; overflow:hidden;">
-          ${buildPredRow(elapsed, 4, 8)}
+        <div class="splits-row elapsed-row three-col">
+          ${buildPredRow(elapsed, 3, 6)}
+        </div>
+        <div class="row-divider"></div>
+        <div class="splits-row elapsed-row three-col" style="border-radius:0 0 8px 8px; overflow:hidden;">
+          ${buildPredRow(elapsed, 6, 9)}
         </div>
       </div>
     </div>`;
