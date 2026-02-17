@@ -100,8 +100,8 @@ const D = {
   // Sub-split proportions (fraction through parent segment at each sub-checkpoint)
   // Derived from Strava segment data + user activity 2/14/2026
   sub: {
-    top_stairs_in_p1: 0.315,      // Start → Top of Dipsea Stairs = 31.5% of p1
-    windy_gap_in_p1: 0.428,       // Start → Windy Gap = 42.8% of p1
+    top_stairs_in_p1: 0.384,      // Start → Top of Dipsea Stairs = 38.4% of p1 (corrected: Mill Valley Square start, not Old Mill Park)
+    windy_gap_in_p1: 0.485,       // Start → Windy Gap = 48.5% of p1 (corrected: Mill Valley Square start, not Old Mill Park)
     dynamite_in_p2: 0.33,         // Muir Woods → top of Dynamite = 33% of p2
     bottom_cardiac_in_p2: 0.92,   // Muir Woods → bottom of Cardiac climb = 92% of p2
     steep_ravine_in_p3: 0.70      // Cardiac → Steep Ravine Bridge = 70% of p3
