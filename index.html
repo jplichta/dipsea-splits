@@ -66,6 +66,19 @@
 
   <!-- Tab 2: Predict Placement -->
   <div class="tab-content" id="tab-predict">
+    <div class="predict-inputs" id="input-actual">
+      <div class="field">
+        <label>Target Finish Time</label>
+        <div class="time-input">
+          <input type="number" id="actual-h" min="0" max="9" value="" placeholder="H">
+          <span class="sep">:</span>
+          <input type="number" id="actual-m" min="0" max="59" value="" placeholder="MM">
+          <span class="sep">:</span>
+          <input type="number" id="actual-s" min="0" max="59" value="" placeholder="SS">
+        </div>
+      </div>
+    </div>
+    <div class="predict-divider"><span>or</span></div>
     <div class="predict-inputs" id="input-split">
       <div class="field">
         <label>Segment</label>
@@ -102,19 +115,6 @@
           <input type="number" id="split-m" min="0" max="59" value="" placeholder="MM">
           <span class="sep">:</span>
           <input type="number" id="split-s" min="0" max="59" value="" placeholder="SS">
-        </div>
-      </div>
-    </div>
-    <div class="predict-divider"><span>or</span></div>
-    <div class="predict-inputs" id="input-actual">
-      <div class="field">
-        <label>Target Finish Time</label>
-        <div class="time-input">
-          <input type="number" id="actual-h" min="0" max="9" value="" placeholder="H">
-          <span class="sep">:</span>
-          <input type="number" id="actual-m" min="0" max="59" value="" placeholder="MM">
-          <span class="sep">:</span>
-          <input type="number" id="actual-s" min="0" max="59" value="" placeholder="SS">
         </div>
       </div>
     </div>
