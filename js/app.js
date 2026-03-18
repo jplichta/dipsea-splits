@@ -121,10 +121,12 @@ function segFrac(props, segKey) {
     case "seg_m_c": return props.p2;
     case "seg_c_s": return props.p3;
     case "seg_s_f": return props.p4;
-    // Cumulative from-start segments
-    case "cum_full":  return 1.0;
+    // Cumulative from-start segments (elapsed time)
     case "cum_s_pan": return props.p1 * S.windy_gap_in_p1;
     case "cum_s_mw":  return props.p1;
+    case "cum_s_ca":  return props.p1 + props.p2;
+    case "cum_s_sr":  return props.p1 + props.p2 + props.p3 * S.steep_ravine_in_p3;
+    case "cum_s_st":  return props.p1 + props.p2 + props.p3;
     default:          return props.p1;
   }
 }
