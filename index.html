@@ -66,32 +66,30 @@
 
   <!-- Tab 2: Predict Placement -->
   <div class="tab-content" id="tab-predict">
-    <div class="predict-inputs" id="input-actual">
-      <div class="field">
-        <label>Target Finish Time</label>
-        <div class="time-input">
-          <input type="number" id="actual-h" min="0" max="9" value="" placeholder="H">
-          <span class="sep">:</span>
-          <input type="number" id="actual-m" min="0" max="59" value="" placeholder="MM">
-          <span class="sep">:</span>
-          <input type="number" id="actual-s" min="0" max="59" value="" placeholder="SS">
-        </div>
-      </div>
-    </div>
-    <div class="predict-divider"><span>or</span></div>
     <div class="predict-inputs" id="input-split">
       <div class="field">
         <label>Segment</label>
         <select id="checkpoint">
-          <optgroup label="From Start (Cumulative)">
+          <optgroup label="From Start (Elapsed)">
             <option value="cum_s_pan">Start &rarr; Panoramic</option>
             <option value="cum_s_mw">Start &rarr; Muir Woods</option>
             <option value="cum_s_ca">Start &rarr; Cardiac</option>
           </optgroup>
-          <optgroup label="Segments">
+          <optgroup label="Leg Segments">
             <option value="seg_m_c">Muir Woods &rarr; Cardiac</option>
+            <option value="seg_c_s">Cardiac &rarr; Stile</option>
+          </optgroup>
+          <optgroup label="Sub-Segments">
+            <option value="s_ts">Start &rarr; Top of Stairs</option>
+            <option value="ts_wg">Top of Stairs &rarr; Windy Gap</option>
+            <option value="s_wg">Start &rarr; Windy Gap</option>
+            <option value="wg_mw">Windy Gap &rarr; Muir Woods</option>
+            <option value="mw_dy">Muir Woods &rarr; Dynamite</option>
+            <option value="dy_bc">Dynamite &rarr; Btm Cardiac</option>
+            <option value="bc_ca">Btm Cardiac &rarr; Cardiac</option>
             <option value="ca_sr">Cardiac &rarr; SR Bridge</option>
             <option value="sr_st">SR Bridge &rarr; Stile</option>
+            <option value="st_fi">Stile &rarr; Finish</option>
           </optgroup>
         </select>
       </div>
@@ -103,6 +101,19 @@
           <input type="number" id="split-m" min="0" max="59" value="" placeholder="MM">
           <span class="sep">:</span>
           <input type="number" id="split-s" min="0" max="59" value="" placeholder="SS">
+        </div>
+      </div>
+    </div>
+    <div class="predict-divider"><span>or</span></div>
+    <div class="predict-inputs" id="input-actual">
+      <div class="field">
+        <label>Target Finish Time</label>
+        <div class="time-input">
+          <input type="number" id="actual-h" min="0" max="9" value="" placeholder="H">
+          <span class="sep">:</span>
+          <input type="number" id="actual-m" min="0" max="59" value="" placeholder="MM">
+          <span class="sep">:</span>
+          <input type="number" id="actual-s" min="0" max="59" value="" placeholder="SS">
         </div>
       </div>
     </div>

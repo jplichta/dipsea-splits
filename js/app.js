@@ -127,7 +127,9 @@ function segFrac(props, segKey) {
     case "cum_s_ca":  return props.p1 + props.p2;
     case "cum_s_sr":  return props.p1 + props.p2 + props.p3 * S.steep_ravine_in_p3;
     case "cum_s_st":  return props.p1 + props.p2 + props.p3;
-    default:          return props.p1;
+    default:
+      console.error("segFrac: unknown segment key:", segKey);
+      return props.p1 + props.p2; // safe fallback: treat as Start→Cardiac
   }
 }
 
